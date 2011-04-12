@@ -54,11 +54,12 @@ public class BIWorker implements Runnable {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+			} else {
+				// Perform the BI work
+				String computedBIResult = simulateBIWork(updateInfoItems);
+				// Store the result
+				storeResult(computedBIResult);
 			}
-			// Perform the BI work
-			String computedBIResult = simulateBIWork(updateInfoItems);
-			// Store the result
-			storeResult(computedBIResult);
 		}
 	}
 
