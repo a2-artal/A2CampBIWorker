@@ -3,8 +3,11 @@ package fr.a2artal.a2camp.biworker;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+
+import org.apache.log4j.Logger;
 
 import com.amazonaws.services.sqs.model.Message;
 import com.teevity.cloud.frameworks.awsy.queues.SQSQueue;
@@ -16,10 +19,15 @@ import com.teevity.cloud.frameworks.awsy.simpleDB.SimpleDB;
  * @author nicolas
  */
 public class BIWorker implements Runnable {
-
+	private Logger _logger = Logger.getLogger(BIWorker.class);
+	
 	private static int SQS_SLEEP_DURATION_BETWEEN_READS_INSEC = 1;
 	private static int NB_MESSAGE_PER_READBATCH = 1;
 	private static String PATH_TO_BIDATASTORE = "/";
+	
+	
+	
+	
 	
 	private String _workerName = ""; 
 	private SQSQueue _sqsUpdateQueue;
@@ -87,11 +95,17 @@ public class BIWorker implements Runnable {
 	 * @return
 	 */
 	private String simulateBIWork(List<Message> updateInfoItems) {
-		
+		this._logger.info("BI working");
 		double crunchedResult = Math.random() * 10;
 		
 		// Iterate over the list 
 		for (Message item : updateInfoItems) {
+			StringBuilder strB = new StringBuilder();
+			for (String line : item.getBody().split("\n")) {
+				strB.append(line);
+				strB.append(";");
+			}
+			this._logger.info("BI working " + strB.toString());
 			// Get the body of the message
 			String dataItem = item.getBody();
 			// Load the data related to that update from the 'PATH_TO_BIDATASTORE'
@@ -100,6 +114,8 @@ public class BIWorker implements Runnable {
 			
 			// Accumulate the crunched result
 			
+			//Pop message out of the queue
+			_sqsUpdateQueue.deleteMessage(item);
 		}
 		// Return the crunched results
 		return "Average number of seats booked by user = '" + crunchedResult + "' (computed by worker [" + _workerName + "])";
